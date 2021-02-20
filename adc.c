@@ -8,22 +8,31 @@
 #include "adc.h"
 
 uint8_t adc_low = 0, adc_high = 0;
-uint8_t adcValue[2] = {0};
+uint8_t localAdcValue[2] = {0};
+uint8_t adcTrBuffer[2] = {0};
 uint8_t adcReady = 0;
+uint8_t adcTrFlag = 0;
 
 ISR(ADC_vect)
 {
-	adcValue[1] = ADCL;
-	adcValue[0] = ADCH;
-	adcReady = 1;
+	localAdcValue[1] = ADCL;
+	localAdcValue[0] = ADCH;
+	
+	if(!adcTrFlag) //Если в данный момент данные не передаются
+	{
+		adcTrBuffer[1] = localAdcValue[1];
+		adcTrBuffer[0] = localAdcValue[0];
+	}
+	
+	//adcReady = 1;
 	//adcValue = (adc_high << 8) | adc_low;
 }
 
 void ADC_Init(void)		//АЦП включён и срабатывает "по требованию"
 {
 	ADC_CONTROL |= (1<<ADEN)	//Включаем АЦП
-				//| (1<<ADSC)		//Запуск преобразования
-				//| (1<<ADFR)		//Непрерывный режим работы АЦП
+				| (1<<ADSC)		//Запуск преобразования
+				| (1<<ADFR)		//Непрерывный режим работы АЦП
 				| (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0) //Выставляем частоту 125 кГц - предделитель 64
 				| (1<<ADIE);	 //Разрешение прерывания от АЦП
 				

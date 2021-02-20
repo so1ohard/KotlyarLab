@@ -57,7 +57,10 @@
 #define PACKET_HEADER		0xEE
 #define TRANSMIT_INTERVAL	1000					//1 second
 
-extern uint8_t adcReady;
+extern uint8_t adcTrFlag;
+extern uint8_t adcTrBuffer[2];
 
-void USART_Init(unsigned int baudRate);
+void USART_Init(unsigned long int baudRate);
+void USART_transmit();
+void USART_receive();
 #endif /* UART_LIBRARY_H_ */

@@ -1,9 +1,9 @@
 /*
- * UART_library.c
- *
- * Created: 15.02.2021 17:11:26
- *  Author: User
- */ 
+* UART_library.c
+*
+* Created: 15.02.2021 17:11:26
+*  Author: User
+*/
 
 #include "main.h"
 #include "UART_library.h"
@@ -16,43 +16,56 @@ uint8_t rxBuffer[3] = {0};
 uint8_t rxIndex = 0;
 uint8_t readyFlag = 0;
 
-void USART_Init(unsigned int baudRate)
+void USART_Init(unsigned long int baudRate)
 {
-	//Устанавливаем скорость 
+	//Устанавливаем скорость
 	RADIO_UBRRH = (uint8_t)(baudRate >> 8);
 	RADIO_UBRRL = (uint8_t)baudRate;
 	
 	RADIO_UCSRB = (1<<RADIO_RXEN) | (1<<RADIO_TXEN) | (1<<RADIO_RXCIE); //Разрешаем приём, передачу и прерывание по приёму
 	//Set character size
-	RADIO_UCSRC = (1<<RADIO_UCSZ1) | (1<<RADIO_UCSZ0);	//Размер данных 8 бит 
+	RADIO_UCSRC = (1<<RADIO_UCSZ1) | (1<<RADIO_UCSZ0);	//Размер данных 8 бит
 }
 
-void USART_transmit() //Передаём данные по UART
+void USART_transmit() //Передаём данные по UART раз в интервал времени
 {
-	if((millis() - lastDataTransmit) > TRANSMIT_INTERVAL)	
+	if((millis() - lastDataTransmit) > TRANSMIT_INTERVAL) //Передаём раз в секунду
 	{
-		if(adcReady)
+		//if(adcTrFlag)
+		//{
+		//TODO:
+		adcTrFlag = 1;  // Запрещаем перезапись данных в буфере АЦП
+		
+		if(rxIndex < 2)	//Если ещё не конец буфера
 		{
-			//TODO:
-			if(RADIO_UCSRA & (1<<RADIO_UDRE))
+			if(RADIO_UCSRA & (1<<RADIO_UDRE))	//Если регистр передачи свободен
 			{
-				RADIO_UDR = adcValue;
+				RADIO_UDR = adcTrBuffer[rxIndex];	//Передаём часть числа АЦП
+				rxIndex++;							//Инкрементируем индекс
 			}
+		}
+		else //Если буфер закончился 
+		{			
+			lastDataTransmit = millis(); //Записываем последнее время передачи
+			rxIndex = 0;	//Сбрасываем индекс буфера 
+			adcTrFlag = 0;	//Разрешаем перезапись данных в буфере АЦП
+		}
+		//}
 	}
 }
 
 ISR(RADIO_RX_vect)
 {
-	uint8_t buf = RADIO_UDR;
-	if(buf == 0xEE)
+	uint8_t buf = RADIO_UDR;	//Считываем данные из регистра обмена
+	if(buf == PACKET_HEADER)				//Если считанный элемент равен 0х0A, значит это начало пакета
 	{
 		rxIndex = 0;
 	}
 	if(readFlag == 0) //Если мы прочитали данные из буфера
 	{
-		if(rxIndex < MAX_RX_SIZE) //И текущий индекс меньше максимального	
+		if(rxIndex < MAX_RX_SIZE) //И текущий индекс меньше максимального
 		{
-			readyFlag = 0;		//Т.к. мы заполняем массив, то сбрасываем флаг готовности			
+			readyFlag = 0;				//Т.к. мы заполняем массив, то сбрасываем флаг готовности
 			rxBuffer[rxIndex] = buf;	//Помещаем полученный байт в буфер
 			rxIndex++;					//Инкремент индекса буфера
 			if (rxIndex == MAX_RX_SIZE) //Если достигли конца буфера

@@ -11,7 +11,8 @@ main.d main.o: .././main.c \
  d:\atmel7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\fuse.h \
  d:\atmel7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\lock.h \
  .././UART_library.h .././main.h \
- d:\atmel7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\interrupt.h
+ d:\atmel7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\interrupt.h \
+ .././adc.h
 
 d:\atmel7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\io.h:
 
@@ -40,3 +41,5 @@ d:\atmel7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\lock.h:
 .././main.h:
 
 d:\atmel7\7.0\toolchain\avr8\avr8-gnu-toolchain\avr\include\avr\interrupt.h:
+
+.././adc.h:
